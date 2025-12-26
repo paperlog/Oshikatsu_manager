@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from PIL import Image
+import io
+from PIL import Image, ImageDraw, ImageFont
 
 st.set_page_config(page_title="推し活マネージャー", layout="wide")
 
@@ -89,6 +90,49 @@ with tab1:
         )
         st.plotly_chart(fig, use_container_width=True)
 
+    # --- 5. 画像出力プログラム ---
+    st.sidebar.markdown("---")
+    if st.sidebar.button("📸 1枚の画像として保存"):
+        # 1. ベースとなるキャンバスを作成 (横1200px x 縦600px)
+        canvas = Image.new('RGB', (1200, 600), color='#ffffff')
+        draw = ImageDraw.Draw(canvas)
+    
+        try:
+            # 2. 推し画像の合成
+            if uploaded_file is not None:
+                # アップロード画像を読み込んでリサイズ
+                user_img = Image.open(uploaded_file).convert("RGBA")
+                user_img.thumbnail((400, 400))
+                canvas.paste(user_img, (50, 100), user_img if user_img.mode == 'RGBA' else None)
+        
+            # 3. テキスト情報の書き込み
+            # ※フォント設定（環境に合わせてパス調整が必要な場合があります）
+            draw.text((50, 30), f"Event: {event_name}", fill=member_color, size=40)
+            draw.text((500, 100), f"Total Spent: {total_spent:,}円", fill="#333333")
+            draw.text((500, 150), f"Remaining: {remaining:,}円", fill=member_color)
+        
+            # 4. グラフを画像として取得して合成
+            # Plotlyのグラフを静止画(bytes)に変換
+            img_bytes = fig.to_image(format="png", width=500, height=400)
+            graph_img = Image.open(io.BytesIO(img_bytes))
+            canvas.paste(graph_img, (650, 100))
+        
+            # 5. ダウンロード準備
+            buf = io.BytesIO()
+            canvas.save(buf, format="PNG")
+            byte_im = buf.getvalue()
+        
+            st.sidebar.download_button(
+                label="💾 画像をダウンロード",
+                data=byte_im,
+                file_name=f"{event_name}_summary.png",
+                mime="image/png"
+            )
+            st.sidebar.success("画像を作成しました！下のボタンから保存してください。")
+        
+        except Exception as e:
+            st.sidebar.error(f"画像作成に失敗しました。ライブラリ 'kaleido' が必要です。")
+
 with tab2:
     st.write("▼ スケジュール入力")
     # スケジュール用のエディタも同様に配置
@@ -102,6 +146,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
