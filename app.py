@@ -40,33 +40,42 @@ with st.sidebar.expander("利用規約・免責事項"):
 # --- 3. CSS設定 (画像とグラフのサイズを固定) ---
 st.markdown(f"""
     <style>
-    /* 1. 表全体の枠線と角丸 */
-    [data-testid="stDataEditor"] {{
-        border: 2px solid {member_color} !important;
-        border-radius: 10px !important;
-    }}
+    /* 1. 背景全体 */
+    .stApp {{ background-color: {member_color}08; }}
 
-    /* 2. セルを選択したときの「枠線」を推し色にする */
-    /* Streamlit内部のグリッドライブラリを狙い撃ちします */
-    [data-testid="stDataEditor"] div:focus-within {{
-        border-color: {member_color} !important;
+    /* 2. タブ名（文字色）と下線の色を強制変更 */
+    /* 選択されていないタブ */
+    div[data-baseweb="tab-list"] button {{
+        color: {member_color} !important;
+        opacity: 0.6;
     }}
-
-    /* 3. 編集中のセルの枠線を推し色にする */
-    div[class*="StyledDataEditor"] div[class*="Internal"] :focus {{
-        outline: 2px solid {member_color} !important;
-        box-shadow: 0 0 0 2px {member_color}33 !important;
+    /* 選択されているタブの文字 */
+    div[data-baseweb="tab-list"] button[aria-selected="true"] p {{
+        color: {member_color} !important;
+        opacity: 1.0;
+        font-weight: bold;
     }}
-
-    /* 4. スクロールバーやフォーカスリングの微調整 */
-    [data-testid="stDataEditor"] canvas {{
-        outline: none !important;
-    }}
-    
-    /* 5. 表の中のチェックボックスやラジオボタン（もしあれば） */
-    input[type="checkbox"]:checked + div {{
+    /* タブの下を走る線の色 */
+    div[data-baseweb="tab-highlight"] {{
         background-color: {member_color} !important;
     }}
+
+    /* 3. 支出管理表（data_editor）の「選択されたセル」の色を上書き */
+    /* 標準のオレンジ/赤を消して推し色にする */
+    div[data-testid="stDataEditor"] div:focus-within {{
+        border-color: {member_color} !important;
+    }}
+    
+    /* セルを選択した時のハイライト（青い枠など）を推し色に */
+    [data-testid="stDataEditor"] [role="gridcell"]:focus {{
+        outline: 2px solid {member_color} !important;
+        background-color: {member_color}22 !important;
+    }}
+
+    /* 4. メトリクスと見出し */
+    [data-testid="stMetricValue"] > div {{ color: {member_color} !important; }}
+    h1, h2, h3 {{ color: {member_color} !important; }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -137,6 +146,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
