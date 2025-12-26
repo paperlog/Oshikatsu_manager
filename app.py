@@ -4,6 +4,57 @@ import plotly.express as px
 import io
 from PIL import Image, ImageDraw, ImageFont
 
+def generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, items_data):
+    # キャンバスサイズ (SNS投稿に最適なサイズ)
+    width, height = 1200, 630
+    # 推しカラーを背景に薄く敷く
+    bg_color = member_color + "1A" # 10%程度の透明度
+    canvas = Image.new('RGB', (width, height), color='#ffffff')
+    draw = ImageDraw.Draw(canvas)
+    
+    # 背景に色をつける
+    draw.rectangle([0, 0, width, height], fill=bg_color)
+
+    # --- フォントの設定 (重要) ---
+    try:
+        # フォルダに置いたフォントファイルを読み込む
+        font_path = "font.ttf" 
+        font_title = ImageFont.truetype(font_path, 60)
+        font_text = ImageFont.truetype(font_path, 40)
+        font_price = ImageFont.truetype(font_path, 50)
+    except:
+        # フォントがない場合はデフォルト
+        font_title = font_text = font_price = ImageFont.load_default()
+
+    # 1. タイトル
+    draw.text((50, 40), f"💖 {event_name}", fill=member_color, font=font_title)
+
+    # 2. 推し画像 (左側に配置)
+    if uploaded_file is not None:
+        user_img = Image.open(uploaded_file).convert("RGBA")
+        # 縦横比を維持してリサイズ
+        user_img.thumbnail((450, 450))
+        canvas.paste(user_img, (50, 130), user_img if user_img.mode == 'RGBA' else None)
+
+    # 3. 集計データ (中央に配置)
+    draw.text((550, 150), "合計支出:", fill="#333333", font=font_text)
+    draw.text((550, 210), f"{total_spent:,} 円", fill="#333333", font=font_price)
+    
+    draw.text((550, 320), "予算残り:", fill="#333333", font=font_text)
+    draw.text((550, 380), f"{remaining:,} 円", fill=member_color, font=font_price)
+
+    # 4. グラフ (右側に配置)
+    # 前の工程で作った Plotly の fig を画像化
+    try:
+        img_bytes = fig.to_image(format="png", width=500, height=500, scale=2)
+        graph_img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+        graph_img.thumbnail((400, 400))
+        canvas.paste(graph_img, (750, 130), graph_img)
+    except:
+        pass
+
+    return canvas
+
 st.set_page_config(page_title="推し活マネージャー", layout="wide")
 
 # --- 1. データの初期化 (計算エラーを防ぐために最初に定義) ---
@@ -89,49 +140,20 @@ with tab1:
             height=250 
         )
         st.plotly_chart(fig, use_container_width=True)
-
-    # --- 5. 画像出力プログラム ---
-    st.sidebar.markdown("---")
-    if st.sidebar.button("📸 1枚の画像として保存"):
-        # 1. ベースとなるキャンバスを作成 (横1200px x 縦600px)
-        canvas = Image.new('RGB', (1200, 600), color='#ffffff')
-        draw = ImageDraw.Draw(canvas)
     
-        try:
-            # 2. 推し画像の合成
-            if uploaded_file is not None:
-                # アップロード画像を読み込んでリサイズ
-                user_img = Image.open(uploaded_file).convert("RGBA")
-                user_img.thumbnail((400, 400))
-                canvas.paste(user_img, (50, 100), user_img if user_img.mode == 'RGBA' else None)
-        
-            # 3. テキスト情報の書き込み
-            # ※フォント設定（環境に合わせてパス調整が必要な場合があります）
-            draw.text((50, 30), f"Event: {event_name}", fill=member_color, size=40)
-            draw.text((500, 100), f"Total Spent: {total_spent:,}円", fill="#333333")
-            draw.text((500, 150), f"Remaining: {remaining:,}円", fill=member_color)
-        
-            # 4. グラフを画像として取得して合成
-            # Plotlyのグラフを静止画(bytes)に変換
-            img_bytes = fig.to_image(format="png", width=500, height=400)
-            graph_img = Image.open(io.BytesIO(img_bytes))
-            canvas.paste(graph_img, (650, 100))
-        
-            # 5. ダウンロード準備
-            buf = io.BytesIO()
-            canvas.save(buf, format="PNG")
-            byte_im = buf.getvalue()
-        
-            st.sidebar.download_button(
-                label="💾 画像をダウンロード",
-                data=byte_im,
-                file_name=f"{event_name}_summary.png",
-                mime="image/png"
-            )
-            st.sidebar.success("画像を作成しました！下のボタンから保存してください。")
-        
-        except Exception as e:
-            st.sidebar.error(f"画像作成に失敗しました。ライブラリ 'kaleido' が必要です。")
+    # --- ボタンとダウンロード処理 ---
+    if st.sidebar.button("✨ シェア用画像を作成"):
+        canvas = generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, items_data)
+    
+        buf = io.BytesIO()
+        canvas.save(buf, format="PNG")
+        st.sidebar.image(canvas, caption="作成された画像", use_container_width=True)
+        st.sidebar.download_button(
+            label="📥 画像を保存する",
+            data=buf.getvalue(),
+            file_name=f"{event_name}_report.png",
+            mime="image/png"
+        )
 
 with tab2:
     st.write("▼ スケジュール入力")
@@ -146,6 +168,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
