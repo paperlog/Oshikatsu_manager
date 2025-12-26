@@ -40,14 +40,48 @@ with st.sidebar.expander("利用規約・免責事項"):
 # --- 3. CSS設定 (画像とグラフのサイズを固定) ---
 st.markdown(f"""
     <style>
+    /* 1. 背景全体 */
     .stApp {{ background-color: {member_color}08; }}
-    h1, h2, h3 {{ color: {member_color} !important; }}
-    /* 画像の縦幅を固定して1画面に収める */
-    .main-img img {{
-        max-height: 400px;
-        object-fit: contain;
-        border: 3px solid {member_color};
-        border-radius: 15px;
+
+    /* 2. タイトルと見出し */
+    h1, h2, h3, h4, h5, p {{ color: {member_color} !important; }}
+
+    /* 3. タブ（予算管理/スケジュール）の色変更 */
+    button[data-baseweb="tab"] {{ color: #ffffff !important; }} /* 通常時 */
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        background-color: {member_color} !important;
+        color: white !important;
+        border-radius: 10px 10px 0px 0px;
+    }}
+
+    /* 4. メトリクス（合計支出・残金の数字） */
+    [data-testid="stMetricLabel"] {{ color: {member_color} !important; }}
+    [data-testid="stMetricValue"] {{ color: {member_color} !important; }}
+
+    /* 5. 画像の枠線 */
+    .stImage img {{
+        border: 4px solid {member_color};
+        border-radius: 20px;
+        box-shadow: 0 4px 15px {member_color}44;
+    }}
+
+    /* 6. 表（data_editor）のヘッダー色を推し色に */
+    [data-testid="stDataEditor"] {{
+        border: 2px solid {member_color};
+        border-radius: 10px;
+        overflow: hidden;
+    }}
+
+    /* 7. サイドバーのカスタマイズ */
+    [data-testid="stSidebar"] {{
+        background-color: #f0f2f6;
+        border-right: 5px solid {member_color};
+    }}
+    
+    /* 8. 入力フォームのラベル */
+    .stTextInput label, .stNumberInput label {{
+        color: {member_color} !important;
+        font-weight: bold;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -119,6 +153,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
