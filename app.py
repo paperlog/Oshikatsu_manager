@@ -37,6 +37,11 @@ with st.sidebar.expander("利用規約・免責事項"):
        - 本アプリは予告なく更新または公開を停止することがあります。
     """)
 
+# 2. お問い合わせ（ボタンをサイドバーに）
+    with st.expander("お問い合わせ"):
+        st.write("不具合報告やご要望はこちら")
+        st.link_button("フォームを開く", "https://docs.google.com/forms/d/e/1FAIpQLSeAys8k_Lnu1BqWZB-vt0bcth0pl3XxL-zdfXVp5QbRwXV6_A/viewform?usp=publish-editor")
+
 # --- 3. CSS設定 (画像とグラフのサイズを固定) ---
 st.markdown(f"""
     <style>
@@ -146,6 +151,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
