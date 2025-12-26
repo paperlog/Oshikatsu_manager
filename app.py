@@ -43,46 +43,36 @@ st.markdown(f"""
     /* 1. 背景全体 */
     .stApp {{ background-color: {member_color}08; }}
 
-    /* 2. タイトルと見出し */
-    h1, h2, h3, h4, h5, p {{ color: {member_color} !important; }}
-
-    /* 3. タブ（予算管理/スケジュール）の色変更 */
-    button[data-baseweb="tab"] {{ color: #ffffff !important; }} /* 通常時 */
-    button[data-baseweb="tab"][aria-selected="true"] {{
+    /* 2. タブ名（文字色）の変更 */
+    /* 選択されていないタブの文字色 */
+    button[data-baseweb="tab"] p {{
+        color: {member_color} !important;
+        opacity: 0.7;
+    }}
+    /* 選択されているタブの文字色と下線 */
+    button[data-baseweb="tab"][aria-selected="true"] p {{
+        color: {member_color} !important;
+        opacity: 1.0;
+        font-weight: bold;
+    }}
+    /* タブの下の線の色 */
+    div[data-baseweb="tab-highlight"] {{
         background-color: {member_color} !important;
-        color: white !important;
-        border-radius: 10px 10px 0px 0px;
     }}
 
-    /* 4. メトリクス（合計支出・残金の数字） */
+    /* 3. 支出管理表（data_editor）でセルを選択した時の色 */
+    /* 選択されたセルの背景色と枠線の色を推し色にする */
+    [data-testid="stDataEditor"] div[data-active="true"] {{
+        background-color: {member_color}33 !important; /* 20%くらいの薄い推し色 */
+        border: 2px solid {member_color} !important;
+    }}
+
+    /* 4. メトリクス（数字）の色 */
     [data-testid="stMetricLabel"] {{ color: {member_color} !important; }}
     [data-testid="stMetricValue"] {{ color: {member_color} !important; }}
 
-    /* 5. 画像の枠線 */
-    .stImage img {{
-        border: 4px solid {member_color};
-        border-radius: 20px;
-        box-shadow: 0 4px 15px {member_color}44;
-    }}
-
-    /* 6. 表（data_editor）のヘッダー色を推し色に */
-    [data-testid="stDataEditor"] {{
-        border: 2px solid {member_color};
-        border-radius: 10px;
-        overflow: hidden;
-    }}
-
-    /* 7. サイドバーのカスタマイズ */
-    [data-testid="stSidebar"] {{
-        background-color: #f0f2f6;
-        border-right: 5px solid {member_color};
-    }}
-    
-    /* 8. 入力フォームのラベル */
-    .stTextInput label, .stNumberInput label {{
-        color: {member_color} !important;
-        font-weight: bold;
-    }}
+    /* 5. 見出しの色 */
+    h1, h2, h3 {{ color: {member_color} !important; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -153,6 +143,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
