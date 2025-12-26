@@ -1,81 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import io
 from PIL import Image, ImageDraw, ImageFont
 
-def generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, items_data, fig):
-    # キャンバスサイズ (SNS・スマホ保存に最適な比率)
-    width, height = 1200, 650
-    # Streamlitダークテーマの背景色
-    canvas = Image.new('RGB', (width, height), color='#0e1117') 
-    draw = ImageDraw.Draw(canvas)
-    
-    # フォント設定 
-    font_path = "font.ttf"
-    try:
-        font_h1 = ImageFont.truetype(font_path, 60) # タイトル
-        font_h2 = ImageFont.truetype(font_path, 35) # 見出し
-        font_body = ImageFont.truetype(font_path, 28) # 表の中身
-        font_num = ImageFont.truetype(font_path, 45) # 金額
-    except:
-        font_h1 = font_h2 = font_body = font_num = ImageFont.load_default()
-
-    # --- レイアウト配置 ---
-
-    # 1. タイトルと推しカラーのアクセントバー
-    draw.text((50, 40), f"💖 {event_name}", fill="#ffffff", font=font_h1)
-    # タイトルの下に推しカラーの太いライン
-    draw.rectangle([50, 115, 1150, 120], fill=member_color)
-
-    # 2. 推し画像 (左側)
-    if uploaded_file is not None:
-        user_img = Image.open(uploaded_file).convert("RGBA")
-        # 縦横比を維持してリサイズ (アプリの見た目に合わせる)
-        user_img.thumbnail((380, 380))
-        # 画像に薄いグレーの枠線をつける
-        canvas.paste(user_img, (50, 160), user_img if user_img.mode == 'RGBA' else None)
-
-    # 3. 支出データ (中央)
-    draw.text((480, 160), "▼ 支出入力", fill=member_color, font=font_h2)
-    
-    # ヘッダー行の背景
-    draw.rectangle([480, 210, 800, 245], fill="#1d222b")
-    draw.text((490, 212), "項目", fill="#808495", font=font_body)
-    draw.text((700, 212), "金額", fill="#808495", font=font_body)
-    
-    y_offset = 260
-    # 表の内容 (最大7件)
-    for index, row in items_data.head(7).iterrows():
-        # 行の区切り線
-        draw.line([(480, y_offset + 35), (800, y_offset + 35)], fill="#31333f", width=1)
-        draw.text((490, y_offset), f"{row['項目']}", fill="#ffffff", font=font_body)
-        draw.text((700, y_offset), f"{row['金額']:,}", fill="#ffffff", font=font_body)
-        y_offset += 45
-
-    # 4. 合計と残り (メトリクス風)
-    draw.text((480, 520), "支出合計", fill="#808495", font=font_body)
-    draw.text((480, 560), f"{total_spent:,} 円", fill="#ffffff", font=font_num)
-    
-    draw.text((680, 520), "予算残り", fill="#808495", font=font_body)
-    draw.text((680, 560), f"{remaining:,} 円", fill=member_color, font=font_num)
-
-    # 5. 円グラフ (右側)
-    try:
-        # Plotlyのグラフをダークテーマに切り替えて画像化
-        fig.update_layout(
-            template="plotly_dark",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color="#ffffff")
-        )
-        img_bytes = fig.to_image(format="png", width=450, height=450, scale=2)
-        graph_img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
-        canvas.paste(graph_img, (800, 160), graph_img)
-    except:
-        pass
-
-    return canvas
 st.set_page_config(page_title="推し活マネージャー", layout="wide")
 
 # --- 1. データの初期化 (計算エラーを防ぐために最初に定義) ---
@@ -161,24 +88,6 @@ with tab1:
             height=250 
         )
         st.plotly_chart(fig, use_container_width=True)
-    
-    st.sidebar.markdown("---")
-    if st.sidebar.button("✨ シェア用画像を作成"):
-        # 関数に fig (グラフ) を渡し忘れないように修正
-        report_img = generate_oshi_image(
-            event_name, total_spent, remaining, member_color, uploaded_file, items_data, fig
-        )
-    
-        # プレビューとダウンロード
-        buf = io.BytesIO()
-        report_img.save(buf, format="PNG")
-        st.sidebar.image(report_img, caption="完成イメージ", use_container_width=True)
-        st.sidebar.download_button(
-            label="📥 画像を保存する",
-            data=buf.getvalue(),
-            file_name=f"{event_name}_report.png",
-            mime="image/png"
-        )
 
 with tab2:
     st.write("▼ スケジュール入力")
@@ -193,6 +102,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
