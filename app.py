@@ -141,13 +141,17 @@ with tab1:
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # --- ボタンとダウンロード処理 ---
+    st.sidebar.markdown("---")
     if st.sidebar.button("✨ シェア用画像を作成"):
-        canvas = generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, items_data)
+        # 関数に fig (グラフ) を渡し忘れないように修正
+        report_img = generate_oshi_image(
+            event_name, total_spent, remaining, member_color, uploaded_file, items_data, fig
+        )
     
+        # プレビューとダウンロード
         buf = io.BytesIO()
-        canvas.save(buf, format="PNG")
-        st.sidebar.image(canvas, caption="作成された画像", use_container_width=True)
+        report_img.save(buf, format="PNG")
+        st.sidebar.image(report_img, caption="完成イメージ", use_container_width=True)
         st.sidebar.download_button(
             label="📥 画像を保存する",
             data=buf.getvalue(),
@@ -168,6 +172,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
