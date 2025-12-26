@@ -4,50 +4,51 @@ import plotly.express as px
 import io
 from PIL import Image, ImageDraw, ImageFont
 
-def generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, fig):
-    # 画像サイズ：スマホでも見やすい横長サイズ
-    width, height = 1200, 600
-    # 背景色：推しカラーを極薄く敷く
+def generate_oshi_image(event_name, total_spent, remaining, member_color, uploaded_file, items_data, fig):
+    # 1. キャンバス作成 (1200x630)
+    width, height = 1200, 630
+    
+    # 【背景色の修正】後ろに「1A」を付けることで、色の濃さを10%まで下げます 
     bg_color = member_color + "1A" 
     canvas = Image.new('RGB', (width, height), color='#ffffff')
     draw = ImageDraw.Draw(canvas)
     draw.rectangle([0, 0, width, height], fill=bg_color)
 
-    # --- フォント読み込み ---
-    font_path = "font.ttf" # 同梱したフォントを指定
+    # 2. フォント設定 (アップロードしたファイル名に合わせる)
+    font_path = "font.ttf" 
     try:
-        font_title = ImageFont.truetype(font_path, 60)
-        font_label = ImageFont.truetype(font_path, 35)
-        font_value = ImageFont.truetype(font_path, 50)
+        font_title = ImageFont.truetype(font_path, 55)
+        font_label = ImageFont.truetype(font_path, 30)
+        font_value = ImageFont.truetype(font_path, 45)
     except:
-        # フォントがない場合は標準（文字化けします）
         font_title = font_label = font_value = ImageFont.load_default()
 
-    # 1. タイトル
-    draw.text((60, 40), f"💖 {event_name}", fill=member_color, font=font_title)
+    # --- 要素の配置 ---
+    # A. タイトル (左上)
+    draw.text((50, 30), f"💖 {event_name}", fill=member_color, font=font_title)
 
-    # 2. 推し画像 (左)
+    # B. 推し画像 (左側)
     if uploaded_file is not None:
         user_img = Image.open(uploaded_file).convert("RGBA")
-        user_img.thumbnail((450, 450)) # サイズ調整
-        canvas.paste(user_img, (60, 120), user_img if user_img.mode == 'RGBA' else None)
+        user_img.thumbnail((400, 400))
+        canvas.paste(user_img, (50, 120), user_img if user_img.mode == 'RGBA' else None)
 
-    # 3. 支出情報 (中央) - 位置を左寄りに修正して凝縮
-    draw.text((550, 160), "合計支出", fill="#555555", font=font_label)
-    draw.text((550, 210), f"{total_spent:,} 円", fill="#333333", font=font_value)
+    # C. 支出リスト (中央) - 表の代わりにテキストでリスト化
+    draw.text((480, 120), "【支出明細】", fill="#333333", font=font_label)
+    y_offset = 170
+    for index, row in items_data.iterrows():
+        draw.text((480, y_offset), f"・{row['項目']}: {row['金額']:,}円", fill="#555555", font=font_label)
+        y_offset += 45
     
-    draw.text((550, 340), "予算残り", fill="#555555", font=font_label)
-    draw.text((550, 390), f"{remaining:,} 円", fill=member_color, font=font_value)
+    # 集計
+    draw.text((480, 450), f"合計: {total_spent:,}円", fill="#333333", font=font_value)
+    draw.text((480, 510), f"残り: {remaining:,}円", fill=member_color, font=font_value)
 
-    # 4. グラフ (右) - 背景を透明にして合成
+    # D. グラフ (右側)
     try:
-        # グラフを画像化（背景透明設定）
-        img_bytes = fig.to_image(format="png", width=500, height=500, scale=2)
+        # 背景を透明にしてグラフを画像化
+        img_bytes = fig.to_image(format="png", width=450, height=450, scale=2)
         graph_img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
-        
-        # 不要な余白をカットしてリサイズ
-        graph_img.thumbnail((450, 450))
-        # 貼り付け位置を中央に寄せる
         canvas.paste(graph_img, (750, 100), graph_img)
     except:
         pass
@@ -167,6 +168,7 @@ with tab2:
         key="schedule_editor"
 
     )
+
 
 
 
