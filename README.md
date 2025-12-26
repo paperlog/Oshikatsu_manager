@@ -1,0 +1,1 @@
+# Oshikatsu_manager
