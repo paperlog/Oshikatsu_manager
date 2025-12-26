@@ -32,6 +32,11 @@ st.markdown(f"""
         border: 3px solid {member_color};
         border-radius: 15px;
     }}
+    @media print {
+        .stApp { background-color: white !important; }
+        [data-testid="stSidebar"], button { display: none !important; }
+        .main { width: 100% !important; }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -100,4 +105,5 @@ with tab2:
         num_rows="dynamic",
         use_container_width=True,
         key="schedule_editor"
+
     )
